@@ -1,0 +1,24 @@
+---
+- name: create ansible group
+  group: name={{ ansible_group }} state=present
+
+- name: create ansible user
+  user: name={{ ansible_user }} group={{ ansible_group }} shell=/bin/bash createhome=yes state=present
+
+- name: create ssh folder
+  file: path=/home/{{ ansible_user }}/.ssh owner={{ ansible_user }} group={{ ansible_group }} state=directory
+
+- name: copy key for ansible user
+  shell: sudo cp /root/.ssh/authorized_keys /home/{{ ansible_user }}/.ssh/authorized_keys
+
+- name: set permissions on keys
+  file: path=/home/{{ ansible_user }}/.ssh/authorized_keys owner={{ ansible_user }} group={{ ansible_group }} mode=0600 state=file
+
+- name: add selinux library
+  yum: name=libselinux-python update_cache=yes state=present
+
+- name: disable SELinux
+  selinux: conf=/etc/selinux/config state=disabled
+
+- name: provide passwordless sudo
+  template: src=sudoers.yml dest=/etc/sudoers.d/{{ ansible_user }} owner=root group=root mode=0440
