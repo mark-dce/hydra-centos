@@ -21,7 +21,8 @@
     - pkgconfig
     - redhat-rpm-config
     - rpm-build
-    - rpm-sign
+    # rpm-sign is missing in centos6 - check if needed for centos7 - could be a dependency???
+    # - rpm-sign
     # other packages
     - screen
     - wget
