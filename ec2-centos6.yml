@@ -23,7 +23,7 @@
     - { role: housekeeping, sudo: yes }
 #    - { role: ec2, sudo: yes }
     - { role: ruby }
-    - { role: hydra-stack }
+    - { role: hydra-stack-c6 }
     - { role: services }
     - { role: passenger, sudo: yes }
     - { role: marmotta }
