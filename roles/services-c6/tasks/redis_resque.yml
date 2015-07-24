@@ -1,0 +1,55 @@
+---
+- name: download redis
+  become: yes
+  get_url: url=http://download.redis.io/redis-stable.tar.gz owner={{ install_user }} group={{ install_group }} dest={{ install_path }}/redis-stable.tar.gz
+  
+- name: unzip redis
+  become: yes
+  unarchive: src={{ install_path }}/redis-stable.tar.gz dest={{ install_path }}/ creates={{ install_path }}/redis-stable/Makefile copy=no
+
+- name: check if redis is installed
+  sudo: yes
+  stat: path=/usr/local/bin/redis-server
+  register: redis
+
+- name: make redis
+  become: yes
+  shell: cd {{ install_path }}/redis-stable && make 
+  when: redis.stat.exists == False
+
+- name: install redis
+  sudo: yes
+  shell: cd {{ install_path }}/redis-stable && make install
+  when: redis.stat.exists == False
+
+- name: create redis directories
+  file: path={ item } state=directory
+  with_items:
+      - /etc/redis
+      - /var/redis
+      - /var/redis/6379
+
+- name: create redis init script
+  copy: src=redis_init_script dest=/etc/rc.d/init.d/redis_6379 owner=root group=root mode=0755
+
+# create the config file
+- name: create redis config file
+  copy: src=redis_config dest=/etc/redis/6379.conf
+
+# daemonize, set the pidfile, configure logging, and set the home dir
+#  sed 's/^\(daemonize\ \)no.*$/\1yes/' -i /etc/redis/6379.conf
+#  sed 's#^\(pidfile\ /var/run/\).*$#\1redis_6379.pid#' -i /etc/redis/6379.conf
+#  sed 's/^\(loglevel\ \)verbose.*$/\1notice/' -i /etc/redis/6379.conf
+#  sed 's#^\(dir\ \).*$#\1/var/redis/6379#' -i /etc/redis/6379.conf
+
+- name: run redis
+  service: name=redis enabled=yes state=started
+  sudo: yes
+  
+- name: copy resque init script
+  template: src=pool_q.j2 dest=/etc/init.d/resque-pool mode=0755
+  sudo: yes
+
+- name: start resque
+  service: name=resque-pool state=started enabled=yes
+  sudo: yes
