@@ -3,7 +3,7 @@
   remote_user: vagrant
   roles:
     - { role: housekeeping, sudo: yes }
-    - { role: vagrant }
+    - { role: vagrant, sudo: yes }
     - { role: ruby }
     - { role: hydra-stack }
     - { role: services }
